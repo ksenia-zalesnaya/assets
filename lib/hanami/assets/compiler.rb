@@ -148,7 +148,19 @@ module Hanami
       # @since 0.1.0
       # @api private
       def destination
-        @destination ||= @configuration.destination_directory.join(basename)
+        @destination ||= @configuration.destination_directory.join(relative_dir).join(basename)
+      end
+
+      # @api private
+      def relative_dir
+        return '' unless @configuration.preserve_directories
+
+        path = ''
+        @configuration.sources.each do |config_source|
+          path = source.relative_path_from(config_source) if source.to_s.include? config_source.to_s
+        end
+
+        Pathname.new(path).split.first
       end
 
       # @since 0.1.0

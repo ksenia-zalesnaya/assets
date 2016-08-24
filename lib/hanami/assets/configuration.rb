@@ -437,6 +437,16 @@ module Hanami
         end
       end
 
+      # Determine if directories should be preserved when copying file to public directory.
+      #
+      def preserve_directories(value = nil)
+        if value.nil?
+          @preserve_directories
+        else
+          @preserve_directories = value
+        end
+      end
+
       # Load Javascript compressor
       #
       # @return [Hanami::Assets::Compressors::Javascript] a compressor
@@ -486,6 +496,7 @@ module Hanami
           c.public_directory      = public_directory
           c.manifest              = manifest
           c.sources               = sources.dup
+          c.preserve_directories  = preserve_directories
           c.javascript_compressor = javascript_compressor
           c.stylesheet_compressor = stylesheet_compressor
         end
@@ -506,6 +517,7 @@ module Hanami
         @base_url              = nil
         @destination_directory = nil
         @digest_manifest       = Config::NullDigestManifest.new(self)
+        @preserve_directories  = false
 
         @javascript_compressor = nil
         @stylesheet_compressor = nil
@@ -576,6 +588,9 @@ module Hanami
       # @since 0.1.0
       # @api private
       attr_writer :sources
+
+      # @api private
+      attr_writer :preserve_directories
 
       # @since 0.1.0
       # @api private

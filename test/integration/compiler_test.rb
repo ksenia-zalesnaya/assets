@@ -6,9 +6,18 @@ require 'hanami/assets/compiler'
 describe 'Compiler' do
   before do
     require 'hanami/compass'
-    fixtures = __dir__ + '/../fixtures'
     TMP.rmtree if TMP.exist?
     TMP.mkdir
+
+    configure!
+  end
+
+  after do
+    @config.reset!
+  end
+
+  def configure!(options = {})
+    fixtures = __dir__ + '/../fixtures'
 
     Hanami::Assets.configure do
       compile          true
@@ -20,13 +29,14 @@ describe 'Compiler' do
         Pathname.new(fixtures).join('stylesheets'),
         TMP
       ]
+
+      options.each do |key, value|
+        send(key, value)
+      end
+      preserve_directories @preserve_directories
     end
 
     @config = Hanami::Assets.configuration
-  end
-
-  after do
-    @config.reset!
   end
 
   it 'copies javascript asset from source to destination' do
@@ -326,5 +336,18 @@ describe 'Compiler' do
     lambda do
       Hanami::Assets::Compiler.compile(@config, 'hidden.css')
     end.must_raise(Hanami::Assets::MissingAsset)
+  end
+
+  describe 'preserve_directories' do
+    before do
+      configure!(preserve_directories: true)
+    end
+    it 'copies stylesheet asset from nested source to destination with nested directory' do
+      Hanami::Assets::Compiler.compile(@config, 'nested/style.css')
+
+      target = @config.public_directory.join('assets', 'nested', 'style.css')
+      target.read.must_match %(div {})
+      target.stat.mode.to_s(8).must_equal('100644')
+    end
   end
 end
